@@ -3,6 +3,7 @@
 
 import atomicwrites
 import json
+import os.path
 import pickle
 
 
@@ -44,8 +45,32 @@ class WrapBinaryFormat:
 
 
 class AtomicStore:
-    def __init__(self, path, default, format, load_kwargs, dump_kwargs):
-        raise NotImplementedError('FIXME')  # FIXME
+    def __init__(self, path, default, format, load_kwargs, dump_kwargs, ignore_inner_exits):
+        self.path = path
+        self.format = format
+        self.load_kwargs = load_kwargs
+        self.dump_kwargs = dump_kwargs
+        self.ignore_inner_exits = ignore_inner_exits
+        self.level = 0
+
+        if not os.path.exists(self.path):
+            self.value = self.default
+        else:
+            with open_readable(self.path) as fp:
+                self.value = self.format.load(fp, **self.load_kwargs)
+
+    def commit(self):
+        with open_writable(self.path) as fp:
+            self.format.dump(self.value, fp, **self.dump_kwargs)
+
+    def __enter__(self):
+        self.level += 1
+
+    def __exit__(self, _, _, _):
+        self.level -= 1
+        assert self.level >= 0, 'Reached stacking level {}.  What?!'.format(self.level)
+        if self.level == 0 or not self.ignore_inner_exits:
+            self.commit()
 
 
 def get_bson_module(magic=[]):
@@ -74,10 +99,10 @@ def resolve_format(format):
     raise ValueError('Format not recognized', format)
 
 
-def open(path, default=None, format=None, load_kwargs=None, dump_kwargs=None):
+def open(path, default=None, format=None, load_kwargs=None, dump_kwargs=None, ignore_inner_exits=False):
     format = resolve_format(format)
     if load_kwargs is None:
         load_kwargs = dict()
     if dump_kwargs is None:
         dump_kwargs = dict()
-    return AtomicStore(path, default, format, load_kwargs, dump_kwargs)
+    return AtomicStore(path, default, format, load_kwargs, dump_kwargs, ignore_inner_exits)

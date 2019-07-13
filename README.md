@@ -52,6 +52,8 @@ No intermediate values get written to disk.
 This is ideal if the task runs short, and in case of any error
 you only want to keep the old state anyway.
 
+For advanced uses, also see the subsection on [reentrancy](#reentrancy).
+
 ### Manual control
 
 This program remembers all start times:
@@ -60,7 +62,7 @@ This program remembers all start times:
 import atomic_store
 import time
 
-my_store = atomic_store.open('gathered.json', default={})
+my_store = atomic_store.open('gathered.json', default=dict())
 
 my_store.value['state'] = 'running'
 my_store.value['thought'] = 'I would not eat green eggs and ham.'
@@ -76,6 +78,8 @@ Again, no intermediate values get written to disk.
 
 This is ideal if you have a long-running job with clear steps,
 and each step's output is valuable.
+
+Note that `commit()` is also available in the context manager.
 
 ### Format tweaks
 
@@ -103,9 +107,43 @@ For convenience, you can also override the abstract classes
 
 In all cases, `load_kwargs` and `dump_kwargs` are still supported.
 
-### Not reentrant
+### Reentrancy
 
-This library is not reentrant.
+If the same `atomic_store` is used as a context manager more than once,
+the default behavior is to write the file only when the last `with` is left:
+
+```python
+# Assume `state.json` contains only `"before"`.
+mngr = atomic_store.open('mystate.json', default=[])
+with mngr as store:
+    store.value = 'outer'
+    # File contains `"before"`: We haven't left any context manager yet.
+    with mngr as store:
+        store.value = 'inner'
+        # File contains `"before"`: We haven't left any context manager yet.
+    # File now contains `"inner"`, because the inner `with`-statement wrote it.
+    # Read the Reentrancy section if you consider this undesired behavior.
+# File now contains `"outer"`, because the outer `with`-statement wrote it.
+```
+
+If you consider this behavior undesirable, you can either just use multiple context managers (by calling `atomic_store.open` multiple times), or by using the keyword `ignore_inner_exits=True`, like this:
+
+```python
+# Assume `state.json` contains only `"before"`.
+mngr = atomic_store.open('mystate.json', default=[], ignore_inner_exits=True)
+with mngr as store:
+    store.value = 'outer'
+    # File contains `"before"`: We haven't left any context manager yet.
+    with mngr as store:
+        store.value = 'inner'
+        # File contains `"before"`: We haven't left any context manager yet.
+    # File *still* contains `"before"`, as the manager detected that it is still active.
+# File now contains `"outer"`, because the outer `with`-statement wrote it.
+```
+
+### Atomic is not magic
+
+This library is not magical.
 
 If two threads (or two processes, or whatever) open a store,
 modify something, and then write concurrently, one of the results may be lost.
@@ -123,6 +161,7 @@ Here are some things this project will not support:
 * Any DB backend.
 * Any multi-file backend.
 * More advanced semantics than just `commit`.
+* This includes rollback.  It's just not obvious which behavior is desired when the file does not exist (Re-use `default` value?  What if it was modified, as it happens with lists and dicts?), and with stacked context managers (should it rollback to the file's state?  Or to the beginning of the `with`?)
 
 ## Contribute
 
