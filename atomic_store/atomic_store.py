@@ -66,7 +66,7 @@ class AtomicStore:
     def __enter__(self):
         self.level += 1
 
-    def __exit__(self, _, _, _):
+    def __exit__(self, _1, _2, _3):
         self.level -= 1
         assert self.level >= 0, 'Reached stacking level {}.  What?!'.format(self.level)
         if self.level == 0 or not self.ignore_inner_exits:
