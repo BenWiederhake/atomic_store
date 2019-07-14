@@ -6,7 +6,7 @@ Sometimes you need to manage a bit of state across executions.
 Sometimes, a fully-blown database is just too much.
 
 This library makes it easy to keep a *store* of stuff in a JSON file,
-in an atomic and fault-resistant manner.  Note that `atomic_store` is not reentrant.
+in an atomic and fault-resistant manner.
 
 Other formats (like pickle and bson) are also supported,
 and arbitrary formats are possible.
