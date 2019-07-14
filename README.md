@@ -122,7 +122,7 @@ with mngr as store:
         # File contains `"before"`: We haven't left any context manager yet.
     # File now contains `"inner"`, because the inner `with`-statement wrote it.
     # Read the Reentrancy section if you consider this undesired behavior.
-# File now contains `"outer"`, because the outer `with`-statement wrote it.
+# File now contains `"inner"`, because the outer `with`-statement wrote it again.
 ```
 
 If you consider this behavior undesirable, you can either just use multiple context managers (by calling `atomic_store.open` multiple times), or by using the keyword `ignore_inner_exits=True`, like this:
@@ -151,7 +151,6 @@ so the data is merely lost, but not corrupted.
 
 ## TODOs
 
-* Write tests
 * Document it properly
 
 ## NOTDOs

@@ -210,3 +210,55 @@ class TestFormats(metastore.TestStore):
         self.assertFile('RpOwTCijMQoRN3Y0SoJR')
         with self.open_store() as store:
             self.assertEqual(store.value, ['TImn6grYvfYQX4w8Ng7Q'])
+
+
+class TestReentrancy(metastore.TestStore):
+    def test_default_behavior(self):
+        self.setUpStore(default='default')
+        self.assertFile(None)
+        with self.open_store() as store:
+            store.value = 'before'
+        self.assertFile('"before"')
+        self.assertEqual(store.value, 'before')
+        # README starts here.
+        store = self.open_store()
+        with store:
+            self.assertFile('"before"')
+            self.assertEqual(store.value, 'before')
+            store.value = 'outer'
+            self.assertFile('"before"')
+            self.assertEqual(store.value, 'outer')
+            with store:
+                store.value = 'inner'
+                self.assertFile('"before"')
+                self.assertEqual(store.value, 'inner')
+            self.assertFile('"inner"')
+            self.assertEqual(store.value, 'inner')
+            # Overwrite the file, just to make sure it's written again:
+            with self.open_store() as store:
+                store.value = 'invalid'
+            self.assertFile('"invalid"')
+        self.assertFile('"inner"')
+
+    def test_ignore_inner_exits(self):
+        self.setUpStore(default='default', ignore_inner_exits=True)
+        self.assertFile(None)
+        with self.open_store() as store:
+            store.value = 'before'
+        self.assertFile('"before"')
+        self.assertEqual(store.value, 'before')
+        # README starts here.
+        store = self.open_store()
+        with store:
+            self.assertFile('"before"')
+            self.assertEqual(store.value, 'before')
+            store.value = 'outer'
+            self.assertFile('"before"')
+            self.assertEqual(store.value, 'outer')
+            with store:
+                store.value = 'inner'
+                self.assertFile('"before"')
+                self.assertEqual(store.value, 'inner')
+            self.assertFile('"before"')
+            self.assertEqual(store.value, 'inner')
+        self.assertFile('"inner"')
