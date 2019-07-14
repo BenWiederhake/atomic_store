@@ -2,13 +2,12 @@
 # Copyright (c) 2019, Ben Wiederhake
 # MIT license.  See the LICENSE file included in the package.
 
-import atomic_store
-import bson
 import json
 import pickle
-import sys
-import unittest
 
+import bson
+
+import atomic_store
 from . import metastore
 
 
@@ -48,20 +47,20 @@ class TestManualControl(metastore.TestStore):
         self.assertFile(None)
         self.assertEqual(dict(), my_store.value)
         my_store.value['state'] = 'running'
-        my_store.value['thought'] = 'I would not eat green eggs and ham.'
+        my_store.value['thought'] = 'not green eggs and ham.'
         self.assertFile(None)
-        self.assertEqual({"state": "running", "thought": "I would not eat green eggs and ham."}, my_store.value)
+        self.assertEqual({"state": "running", "thought": "not green eggs and ham."}, my_store.value)
         my_store.commit()
-        self.assertFile('{"state": "running", "thought": "I would not eat green eggs and ham."}')
-        self.assertEqual({"state": "running", "thought": "I would not eat green eggs and ham."}, my_store.value)
+        self.assertFile('{"state": "running", "thought": "not green eggs and ham."}')
+        self.assertEqual({"state": "running", "thought": "not green eggs and ham."}, my_store.value)
         # ... some calculations ...
         my_store.value['state'] = 'done'
-        my_store.value['thought'] = 'I do so like Green eggs and ham!'
-        self.assertFile('{"state": "running", "thought": "I would not eat green eggs and ham."}')
-        self.assertEqual({"state": "done", "thought": "I do so like Green eggs and ham!"}, my_store.value)
+        my_store.value['thought'] = 'yes Green eggs and ham!'
+        self.assertFile('{"state": "running", "thought": "not green eggs and ham."}')
+        self.assertEqual({"state": "done", "thought": "yes Green eggs and ham!"}, my_store.value)
         my_store.commit()
-        self.assertFile('{"state": "done", "thought": "I do so like Green eggs and ham!"}')
-        self.assertEqual({"state": "done", "thought": "I do so like Green eggs and ham!"}, my_store.value)
+        self.assertFile('{"state": "done", "thought": "yes Green eggs and ham!"}')
+        self.assertEqual({"state": "done", "thought": "yes Green eggs and ham!"}, my_store.value)
 
 
 class TestFormatTweak(metastore.TestStore):
@@ -91,10 +90,12 @@ class CustomFormatBstr(atomic_store.AbstractFormatBstr):
         self.t = t
 
     def dumps(self, obj, **kwargs):
+        self.t.assertEqual(dict(), kwargs)
         self.t.assertEqual(obj, ['A6QemadVWenL1LR0ueef'])
         return b'f8oDYtZ8zJMZVXIVjTv6'
 
     def loads(self, binary_string, **kwargs):
+        self.t.assertEqual(dict(), kwargs)
         self.t.assertIsInstance(binary_string, bytes)
         self.t.assertEqual(binary_string, b'f8oDYtZ8zJMZVXIVjTv6')
         return ['A6QemadVWenL1LR0ueef']
@@ -105,10 +106,12 @@ class CustomBinaryFormatFile(atomic_store.AbstractFormatFile):
         self.t = t
 
     def dump(self, obj, fp, **kwargs):
+        self.t.assertEqual(dict(), kwargs)
         self.t.assertEqual(obj, ['hUFKTouDel2TY5AvsGoz'])
         fp.write(b'0kCEg4gP022IxuFJdTkj')
 
     def load(self, fp, **kwargs):
+        self.t.assertEqual(dict(), kwargs)
         bstr = fp.read()
         self.t.assertIsInstance(bstr, bytes)
         self.t.assertEqual(bstr, b'0kCEg4gP022IxuFJdTkj')
@@ -120,10 +123,12 @@ class CustomTextFormatFile:  # Doesn't need to be a subclass!
         self.t = t
 
     def dump(self, obj, fp, **kwargs):
+        self.t.assertEqual(dict(), kwargs)
         self.t.assertEqual(obj, ['TImn6grYvfYQX4w8Ng7Q'])
         fp.write('RpOwTCijMQoRN3Y0SoJR')
 
     def load(self, fp, **kwargs):
+        self.t.assertEqual(dict(), kwargs)
         bstr = fp.read()
         self.t.assertIsInstance(bstr, str)
         self.t.assertEqual(bstr, 'RpOwTCijMQoRN3Y0SoJR')

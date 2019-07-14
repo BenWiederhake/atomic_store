@@ -1,10 +1,11 @@
 # Copyright (c) 2019, Ben Wiederhake
 # MIT license.  See the LICENSE file included in the package.
 
-import atomicwrites
 import json
 import os.path
 import pickle
+
+import atomicwrites
 
 
 def open_writable(path, is_binary):
@@ -29,7 +30,7 @@ class AbstractFormatFile:
     def dump(self, obj, fp, **kwargs):
         raise NotImplementedError('atomic_store.AbstractFormatFile.dump_bstr()')
 
-    def loads(self, fp, **kwargs):
+    def load(self, fp, **kwargs):
         raise NotImplementedError('atomic_store.AbstractFormatFile.load_bstr()')
 
 
@@ -47,7 +48,8 @@ class WrapBinaryFormat:
 
 
 class AtomicStore:
-    def __init__(self, path, default, format, is_binary, load_kwargs, dump_kwargs, ignore_inner_exits):
+    def __init__(self, path, default, format, is_binary,
+                 load_kwargs, dump_kwargs, ignore_inner_exits):
         self.path = path
         self.format = format
         self.is_binary = is_binary
@@ -77,7 +79,7 @@ class AtomicStore:
             self.commit()
 
 
-def get_bson_module(magic=[]):
+def _get_bson_module(magic=[]):
     if not magic:
         try:
             import bson
@@ -91,7 +93,7 @@ def resolve_format(format):
     if format is None or format == 'json' or format == json:
         return False, json
     if format == 'bson':
-        return True, WrapBinaryFormat(get_bson_module())
+        return True, WrapBinaryFormat(_get_bson_module())
     if format == 'pickle':
         return True, pickle
     if getattr(format, 'dump', None) and getattr(format, 'load', None):
@@ -101,7 +103,8 @@ def resolve_format(format):
     raise ValueError('Format not recognized', format)
 
 
-def open_store(path, default=None, format=None, is_binary=None, load_kwargs=None, dump_kwargs=None, ignore_inner_exits=False):
+def open_store(path, default=None, format=None, is_binary=None,
+               load_kwargs=None, dump_kwargs=None, ignore_inner_exits=False):
     is_binary_hint, format = resolve_format(format)
     if is_binary is None:
         is_binary = is_binary_hint
@@ -109,4 +112,5 @@ def open_store(path, default=None, format=None, is_binary=None, load_kwargs=None
         load_kwargs = dict()
     if dump_kwargs is None:
         dump_kwargs = dict()
-    return AtomicStore(path, default, format, is_binary, load_kwargs, dump_kwargs, ignore_inner_exits)
+    return AtomicStore(path, default, format, is_binary,
+                       load_kwargs, dump_kwargs, ignore_inner_exits)

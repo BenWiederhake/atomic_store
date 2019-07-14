@@ -2,11 +2,12 @@
 # Copyright (c) 2019, Ben Wiederhake
 # MIT license.  See the LICENSE file included in the package.
 
-import atomic_store
 import os.path
 import shutil
 import tempfile
 import unittest
+
+import atomic_store
 
 
 class TestStore(unittest.TestCase):

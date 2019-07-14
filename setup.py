@@ -2,8 +2,6 @@
 # Copyright (c) 2019, Ben Wiederhake
 # MIT license.  See the LICENSE file included in the package.
 
-import sys
-import pkgutil
 from setuptools import setup
 
 
@@ -14,8 +12,8 @@ setup(
     install_requires=['atomicwrites>=1.3.0', 'bson>=0.5.8'],  # Lower versions might be fine
     author='Ben Wiederhake',
     author_email='BenWiederhake.GitHub@gmx.de',
-    description='A robust, atomic file store',
-    long_description='A store that is easier than a DBMS, but more fault-resistant than just naive files.',
+    description='A robust, atomic single-file value store',
+    long_description='Easier than a DBMS, but more fault-resistant than just a file.',
     platforms='Any',
     license='MIT',
     keywords='atomic store',
