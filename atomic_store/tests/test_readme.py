@@ -57,11 +57,9 @@ class TestManualControl(metastore.TestStore):
         self.assertEqual({"state": "done", "thought": "I do so like Green eggs and ham!"}, my_store.value)
 
 
-class TestFormatTweak_Compact(metastore.TestStore):
-    def setUp(self):
-        self.setUpStore(default=dict(), dump_kwargs=dict(sort_keys=True, separators=(',', ':')))
-
+class TestFormatTweak(metastore.TestStore):
     def test_compact_format(self):
+        self.setUpStore(default=dict(), dump_kwargs=dict(sort_keys=True, separators=(',', ':')))
         self.assertFile(None)
         with self.open_store() as store:
             store.value['b'] = 1337
@@ -70,13 +68,9 @@ class TestFormatTweak_Compact(metastore.TestStore):
         # Note the order!
         self.assertFile('{"a":2,"b":1337}')
 
-
-class TestFormatTweak_Indent(metastore.TestStore):
-    def setUp(self):
+    def test_indented_format(self):
         dump_kwargs = dict(indent=1, separators=(' ,', '  : '))
         self.setUpStore(default=dict(), dump_kwargs=dump_kwargs, load_kwargs=dict())
-
-    def test_compact_format(self):
         self.assertFile(None)
         with self.open_store() as store:
             store.value['b'] = 1337
