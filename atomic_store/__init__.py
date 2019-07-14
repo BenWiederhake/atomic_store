@@ -12,8 +12,7 @@ Other formats (like pickle and bson) are also supported,
 and arbitrary formats are possible.
 """
 
-from ._impl import AbstractFormatBstr, AbstractFormatFile, AtomicStore
-
+from ._impl import AbstractFormatBstr, AbstractFormatFile, AtomicStore, WrapBinaryFormat
 from ._impl import open_store as open
 
-__all__ = ['AbstractFormatBstr', 'AbstractFormatFile', 'AtomicStore', 'open']
+__all__ = ['AbstractFormatBstr', 'AbstractFormatFile', 'AtomicStore', 'open', 'WrapBinaryFormat']

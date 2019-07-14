@@ -20,6 +20,21 @@ def _open_readable(path, is_binary):
 
 
 class AbstractFormatBstr:
+    r"""
+    Abstract class for a binary format definition.
+
+    Subclasses must implement `dumps` and `loads`.
+
+    This can also be made to work with text formats (that operate on `str`
+    and not just `bytes`), if the `AtomicStore` was created with `is_binary=False`.
+
+    Methods
+    -------
+    dumps(obj)
+        Encode the object, and return a binary (or text) string.
+    loads(binary_string)
+        Decode the binary (or text) string, and return the decoded object.
+    """
     def dumps(self, obj, **kwargs):
         raise NotImplementedError('atomic_store.AbstractFormatBstr.dump_bstr()')
 
@@ -28,6 +43,21 @@ class AbstractFormatBstr:
 
 
 class AbstractFormatFile:
+    r"""
+    Abstract class for a file definition.
+
+    Subclasses must implement `dump` and `load`.
+
+    This can also be made to work with text formats (that operate on `str`
+    and not just `bytes`), if the `AtomicStore` was created with `is_binary=False`.
+
+    Methods
+    -------
+    dump(obj, fp)
+        Encode the object into the given file.
+    load(fp)
+        Decode from the file.
+    """
     def dump(self, obj, fp, **kwargs):
         raise NotImplementedError('atomic_store.AbstractFormatFile.dump_bstr()')
 
@@ -36,6 +66,27 @@ class AbstractFormatFile:
 
 
 class WrapBinaryFormat:
+    r"""
+    Wraps a binary format into a file format.
+
+    Takes a format that only supports `.dumps()` and `.loads()`,
+    and wraps it into file operations (`dump()` and `load()`).
+
+    This can also be made to work with text formats (that operate on `str`
+    and not just `bytes`), if the `AtomicStore` was created with `is_binary=False`.
+
+    Attributes
+    ----------
+    format_bstr
+        Object or module that supports `.dumps()` and `.loads()`.
+
+    Methods
+    -------
+    dump(obj, fp)
+        Encode the object with the given format, and write it to the file.
+    load(fp)
+        Read from the file, and decode it with the given format.
+    """
     def __init__(self, format_bstr):
         self.format_bstr = format_bstr
 
@@ -49,6 +100,31 @@ class WrapBinaryFormat:
 
 
 class AtomicStore:
+    r"""
+    Represents a single-value, single-file store with atomic updates.
+
+    Note that instances of this class can be used as context managers,
+    which will automatically call `commit()` upon exiting.
+
+    Attributes
+    ----------
+    path : str or path
+        Path to a file.  This file may or may not already exist.
+    default : any
+        If the file at `path` did not already exist, this value is used to
+        initialize the store.  Defaults to `None`.
+    format : None or module or str or AbstractFormatBstr or AbstractFormatFile or object
+        A format indication
+        Supported values are `None` (for JSON), `'json'`, `'pickle'`,
+        `'bson'` (requires bson to be installed), and also any module or object
+        providing `dump/load` or `dumps/loads`.
+        Note that this means you can use the modules `json`, `pickle`,
+        and `bson` as they are.
+
+    See also
+    --------
+    open_store
+    """
     def __init__(self, path, default, format, is_binary,
                  load_kwargs, dump_kwargs, ignore_inner_exits):
         self.path = path
@@ -66,14 +142,30 @@ class AtomicStore:
                 self.value = self.format.load(fp, **self.load_kwargs)
 
     def commit(self):
+        r"""Saves the current value into the file.
+
+        This process is atomic.  In other words: An outside observer will
+        either see the previous file content, or the new file content,
+        but never an intermediate or even corrupted content.
+        """
         with _open_writable(self.path, self.is_binary) as fp:
             self.format.dump(self.value, fp, **self.dump_kwargs)
 
     def __enter__(self):
+        r"""Enters a new context.
+
+        This does not yet change the file.
+        In fact, it only increments an internal counter.
+        """
         self.level += 1
         return self
 
     def __exit__(self, _1, _2, _3):
+        r"""Exits the context, and usually saves the current value into the file.
+
+        The exception is when the exited context is inside another context of
+        the same `AtomicStore`, and `ignore_inner_exits` is set to `True`.
+        """
         self.level -= 1
         assert self.level >= 0, 'Reached stacking level {}.  What?!'.format(self.level)
         if self.level == 0 or not self.ignore_inner_exits:
@@ -91,7 +183,7 @@ def _get_bson_module(magic=[]):
 
 
 def resolve_format(format):
-    """Resolves a format indication in a best-effort manner.
+    r"""Resolves a format indication in a best-effort manner.
 
     Given any format indication (e.g. `None`, the module `bson`, the string
     `'pickle'`, or an object), returns something usable.  Specifically,
@@ -160,11 +252,16 @@ def open_store(path, default=None, format=None, is_binary=None,
         except when JSON is involved (then it assumes text files).
         To override this, you can set `is_binary`.
     dump_kwargs : None or dict
-        This will be forwarded to the `dump` call as-is.
+        This will be forwarded to the `dump` call as-is.  Default is `dict()`.
         You can use this for example to pass `separators=(',', ':')` to the JSON encoder.
     load_kwargs : None or dict
-        This will be forwarded to the `load` call as-is.
+        This will be forwarded to the `load` call as-is.  Default is `dict()`.
         You can use this for example to pass `encoding='latin-1'` to the pickle decoder.
+    ignore_inner_exits : None or bool
+        If the store is used as a context manager, it is possible to exit an "inner" context.
+        By default (`None` and `False`), the store will save the file in all cases.
+        If `True`, the store will only save upon exiting the outermost context,
+        thus reducing the chances of seeing "intermediate" values in the file.
     """
     is_binary_hint, format = resolve_format(format)
     if is_binary is None:

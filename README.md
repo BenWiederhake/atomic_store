@@ -109,17 +109,17 @@ In all cases, `load_kwargs` and `dump_kwargs` are still supported.
 ### Reentrancy
 
 If the same `atomic_store` is used as a context manager more than once,
-the default behavior is to write the file only when the last `with` is left:
+the default behavior is to write the file only when the last `with` is exited:
 
 ```python
 # Assume `state.json` contains only `"before"`.
 mngr = atomic_store.open('mystate.json', default=[])
 with mngr as store:
     store.value = 'outer'
-    # File contains `"before"`: We haven't left any context manager yet.
+    # File contains `"before"`: We haven't exited any context manager yet.
     with mngr as store:
         store.value = 'inner'
-        # File contains `"before"`: We haven't left any context manager yet.
+        # File contains `"before"`: We haven't exited any context manager yet.
     # File now contains `"inner"`, because the inner `with`-statement wrote it.
     # Read the Reentrancy section if you consider this undesired behavior.
 # File now contains `"inner"`, because the outer `with`-statement wrote it again.
@@ -132,10 +132,10 @@ If you consider this behavior undesirable, you can either just use multiple cont
 mngr = atomic_store.open('mystate.json', default=[], ignore_inner_exits=True)
 with mngr as store:
     store.value = 'outer'
-    # File contains `"before"`: We haven't left any context manager yet.
+    # File contains `"before"`: We haven't exited any context manager yet.
     with mngr as store:
         store.value = 'inner'
-        # File contains `"before"`: We haven't left any context manager yet.
+        # File contains `"before"`: We haven't exited any context manager yet.
     # File *still* contains `"before"`, as the manager detected that it is still active.
 # File now contains `"outer"`, because the outer `with`-statement wrote it.
 ```
@@ -152,7 +152,7 @@ so the data is merely lost, but not corrupted.
 ## TODOs
 
 * Figure out how to make `bson` optional
-* Document it properly
+* Publish on PyPI
 
 ## NOTDOs
 
