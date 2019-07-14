@@ -38,7 +38,7 @@ class WrapBinaryFormat:
         self.format_bstr = format_bstr
 
     def dump(self, obj, fp, **kwargs):
-        bstr = self.format_bstr.dumps(objs, **kwargs)
+        bstr = self.format_bstr.dumps(obj, **kwargs)
         fp.write(bstr)
 
     def load(self, fp, **kwargs):
@@ -79,7 +79,6 @@ class AtomicStore:
 
 def get_bson_module(magic=[]):
     if not magic:
-        print('Loading bson')
         try:
             import bson
         except ModuleNotFoundError:
@@ -92,14 +91,13 @@ def resolve_format(format):
     if format is None or format == 'json' or format == json:
         return False, json
     if format == 'bson':
-        return True, get_bson_module()
+        return True, WrapBinaryFormat(get_bson_module())
     if format == 'pickle':
         return True, pickle
-    format_dir = format.__dir__()
-    if 'dump' in format_dir and 'load' in format_dir:
+    if getattr(format, 'dump', None) and getattr(format, 'load', None):
         return True, format
-    if 'dumps' in format_dir and 'loads' in format_dir:
-        return WrapBinaryFormat(format)
+    if getattr(format, 'dumps', None) and getattr(format, 'loads', None):
+        return True, WrapBinaryFormat(format)
     raise ValueError('Format not recognized', format)
 
 

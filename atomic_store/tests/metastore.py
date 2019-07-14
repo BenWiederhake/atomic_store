@@ -10,7 +10,13 @@ import unittest
 
 
 class TestStore(unittest.TestCase):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self._is_set_up = False
+
     def setUpStore(self, **store_kwargs):
+        assert not self._is_set_up
+        self._is_set_up = True
         self.store_kwargs = store_kwargs
         # We want to `mk*temp` to actually create *something* in order to raise
         # the chances of it being actually atomic.  However, we don't want it
