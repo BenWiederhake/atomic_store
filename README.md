@@ -83,11 +83,9 @@ Note that `commit()` is also available in the context manager.
 
 ### Format tweaks
 
-By default, `atomic_store` tries to keep the JSON file as small as possible.
-This means it calls `json.dumps` with the parameters `separators=(',', ':')`.
-If you wish any other parameters, you can call `open` with `dump_kwargs=YOUR_KWARGS`.
-Note that you have to set `separators=(',', ':')` yourself, if you wish the JSON output to be small.
-The option `load_kwargs` is also provided.
+If you're using the json backend, and want to keep the JSON file as small as possible,
+you can call `open` with `dump_kwargs={separators=(',', ':')}`.
+The keyword `load_kwargs` also exists.
 
 ### Non-JSON formats
 
@@ -99,8 +97,10 @@ atomic_store.open('runs.json', default=[], format=MY_FORMAT)
 
 Supported values are `None` (for JSON), `'json'`, `'pickle'`,
 `'bson'` (requires bson to be installed), and also any module or object
-providing `dump` and `load` (operating on files) or `dumps` and `loads` (compatible with binary strings).
-Note that this includes the modules `json`, `pickle`, and `bson`.
+providing `dump/load` or `dumps/loads`.
+By default, `atomic_store` assumes you operate on binary files, except when JSON is involved.
+To override this, you can set `is_binary`.
+Note that this means you can use the modules `json`, `pickle`, and `bson` as they are.
 
 For convenience, you can also override the abstract classes
 `atomic_store.AbstractFormatFile` or `atomic_store.AbstractFormatBstr`.

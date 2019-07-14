@@ -7,12 +7,14 @@ import os.path
 import pickle
 
 
-def open_writable(path):
-    return atomicwrites.AtomicWriter(path, mode='wb', overwrite=True).open()
+def open_writable(path, is_binary):
+    mode = 'wb' if is_binary else 'w'
+    return atomicwrites.AtomicWriter(path, mode=mode, overwrite=True).open()
 
 
-def open_readable(path):
-    return open(path, 'rb')
+def open_readable(path, is_binary):
+    mode = 'rb' if is_binary else 'r'
+    return open(path, mode)
 
 
 class AbstractFormatBstr:
@@ -45,26 +47,28 @@ class WrapBinaryFormat:
 
 
 class AtomicStore:
-    def __init__(self, path, default, format, load_kwargs, dump_kwargs, ignore_inner_exits):
+    def __init__(self, path, default, format, is_binary, load_kwargs, dump_kwargs, ignore_inner_exits):
         self.path = path
         self.format = format
+        self.is_binary = is_binary
         self.load_kwargs = load_kwargs
         self.dump_kwargs = dump_kwargs
         self.ignore_inner_exits = ignore_inner_exits
         self.level = 0
 
         if not os.path.exists(self.path):
-            self.value = self.default
+            self.value = default
         else:
-            with open_readable(self.path) as fp:
+            with open_readable(self.path, self.is_binary) as fp:
                 self.value = self.format.load(fp, **self.load_kwargs)
 
     def commit(self):
-        with open_writable(self.path) as fp:
+        with open_writable(self.path, self.is_binary) as fp:
             self.format.dump(self.value, fp, **self.dump_kwargs)
 
     def __enter__(self):
         self.level += 1
+        return self
 
     def __exit__(self, _1, _2, _3):
         self.level -= 1
@@ -85,24 +89,26 @@ def get_bson_module(magic=[]):
 
 
 def resolve_format(format):
-    if format is None or format == 'json':
-        return json
+    if format is None or format == 'json' or format == json:
+        return False, json
     if format == 'bson':
-        return get_bson_module()
+        return True, get_bson_module()
     if format == 'pickle':
-        return pickle
+        return True, pickle
     format_dir = format.__dir__()
     if 'dump' in format_dir and 'load' in format_dir:
-        return format
+        return True, format
     if 'dumps' in format_dir and 'loads' in format_dir:
         return WrapBinaryFormat(format)
     raise ValueError('Format not recognized', format)
 
 
-def open(path, default=None, format=None, load_kwargs=None, dump_kwargs=None, ignore_inner_exits=False):
-    format = resolve_format(format)
+def open_store(path, default=None, format=None, is_binary=None, load_kwargs=None, dump_kwargs=None, ignore_inner_exits=False):
+    is_binary_hint, format = resolve_format(format)
+    if is_binary is None:
+        is_binary = is_binary_hint
     if load_kwargs is None:
         load_kwargs = dict()
     if dump_kwargs is None:
         dump_kwargs = dict()
-    return AtomicStore(path, default, format, load_kwargs, dump_kwargs, ignore_inner_exits)
+    return AtomicStore(path, default, format, is_binary, load_kwargs, dump_kwargs, ignore_inner_exits)
