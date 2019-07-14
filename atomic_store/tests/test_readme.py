@@ -6,6 +6,8 @@ import atomic_store
 import bson
 import json
 import pickle
+import sys
+import unittest
 
 from . import metastore
 
@@ -64,25 +66,24 @@ class TestManualControl(metastore.TestStore):
 
 class TestFormatTweak(metastore.TestStore):
     def test_compact_format(self):
-        self.setUpStore(default=dict(), dump_kwargs=dict(sort_keys=True, separators=(',', ':')))
+        dump_kwargs = dict(sort_keys=True, separators=(',', ':'))
+        self.setUpStore(default=dict(), dump_kwargs=dump_kwargs)
         self.assertFile(None)
         with self.open_store() as store:
             store.value['b'] = 1337
             store.value['a'] = 2
             self.assertEqual({'b': 1337, 'a': 2}, store.value)
-        # Note the order!
         self.assertFile('{"a":2,"b":1337}')
 
     def test_indented_format(self):
-        dump_kwargs = dict(indent=1, separators=(' ,', '  : '))
+        dump_kwargs = dict(sort_keys=True, separators=(' ,', '  : '), indent=1)
         self.setUpStore(default=dict(), dump_kwargs=dump_kwargs, load_kwargs=dict())
         self.assertFile(None)
         with self.open_store() as store:
             store.value['b'] = 1337
             store.value['a'] = 2
             self.assertEqual({'b': 1337, 'a': 2}, store.value)
-        # Note the order!
-        self.assertFile('{\n "b"  : 1337 ,\n "a"  : 2\n}')
+        self.assertFile('{\n "a"  : 2 ,\n "b"  : 1337\n}')
 
 
 class CustomFormatBstr(atomic_store.AbstractFormatBstr):
