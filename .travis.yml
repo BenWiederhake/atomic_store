@@ -18,3 +18,5 @@ script:
   - make -C docs html
   - python -m pip install setuptools twine wheel
   - python setup.py sdist bdist_wheel
+  - python setup.py install
+  - for i in examples/*.py ; do $i ; $i ; $i ; done
