@@ -1,5 +1,5 @@
 # Copyright (c) 2019, Ben Wiederhake
-# MIT license.    See the LICENSE file included in the package.
+# MIT license.  See the LICENSE file included in the package.
 
 import atomicwrites
 import json
