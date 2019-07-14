@@ -5,7 +5,6 @@
 import sys
 import pkgutil
 from setuptools import setup
-from setuptools.command.install import install
 
 
 setup(
@@ -13,6 +12,8 @@ setup(
     version='0.0.1',
     packages=['atomic_store'],
     install_requires=['atomicwrites>=1.3.0'],  # A lower version might be fine
+    test_requires=['bson>=0.5.8'],  # A lower version might be fine
+    extras_require={'bson':  ['bson>=0.5.8']},  # A lower version might be fine
     author='Ben Wiederhake',
     author_email='BenWiederhake.GitHub@gmx.de',
     description='A robust, atomic file store',
@@ -26,5 +27,4 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
-    cmdclass={'install': install}
 )
