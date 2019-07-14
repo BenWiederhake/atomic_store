@@ -20,8 +20,7 @@ def _open_readable(path, is_binary):
 
 
 class AbstractFormatBstr:
-    r"""
-    Abstract class for a binary format definition.
+    r"""Abstract class for a binary format definition.
 
     Subclasses must implement `dumps` and `loads`.
 
@@ -43,8 +42,7 @@ class AbstractFormatBstr:
 
 
 class AbstractFormatFile:
-    r"""
-    Abstract class for a file definition.
+    r"""Abstract class for a file definition.
 
     Subclasses must implement `dump` and `load`.
 
@@ -66,8 +64,7 @@ class AbstractFormatFile:
 
 
 class WrapBinaryFormat:
-    r"""
-    Wraps a binary format into a file format.
+    r"""Wraps a binary format into a file format.
 
     Takes a format that only supports `.dumps()` and `.loads()`,
     and wraps it into file operations (`dump()` and `load()`).
@@ -100,8 +97,7 @@ class WrapBinaryFormat:
 
 
 class AtomicStore:
-    r"""
-    Represents a single-value, single-file store with atomic updates.
+    r"""Represents a single-value, single-file store with atomic updates.
 
     Note that instances of this class can be used as context managers,
     which will automatically call `commit()` upon exiting.

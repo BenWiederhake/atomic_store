@@ -10,6 +10,9 @@ in an atomic and fault-resistant manner.
 
 Other formats (like pickle and bson) are also supported,
 and arbitrary formats are possible.
+
+See `the README.md <https://github.com/BenWiederhake/atomic_store/blob/master/README.md#atomic_store>`_
+for a linear walkthrough for each feature.
 """
 
 from ._impl import AbstractFormatBstr, AbstractFormatFile, AtomicStore, WrapBinaryFormat

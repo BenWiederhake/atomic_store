@@ -9,8 +9,8 @@
 # Sphinx>=2.1.2
 
 # Make documentation
-sphinx-apidoc -f -o docs/ atomic_store/ atomic_store/tests/
-mv docs/modules.rst docs/index.rst
+#sphinx-apidoc -f -o docs/ atomic_store/ atomic_store/tests/
+#mv docs/modules.rst docs/index.rst
 make -C docs html
 rm docs/_build/html/py-modindex.html
 
