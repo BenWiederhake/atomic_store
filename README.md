@@ -83,7 +83,7 @@ Note that `commit()` is also available in the context manager.
 ### Format tweaks
 
 If you're using the json backend, and want to keep the JSON file as small as possible,
-you can call `open` with `dump_kwargs={separators=(',', ':')}`.
+you can call `open` with `dump_kwargs=dict(separators=(',', ':'))`.
 The keyword `load_kwargs` also exists.
 
 ### Non-JSON formats
