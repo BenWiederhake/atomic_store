@@ -11,9 +11,7 @@ setup(
     name='atomic_store',
     version='0.0.1',
     packages=['atomic_store'],
-    install_requires=['atomicwrites>=1.3.0'],  # A lower version might be fine
-    test_requires=['bson>=0.5.8'],  # A lower version might be fine
-    extras_require={'bson':  ['bson>=0.5.8']},  # A lower version might be fine
+    install_requires=['atomicwrites>=1.3.0', 'bson>=0.5.8'],  # Lower versions might be fine
     author='Ben Wiederhake',
     author_email='BenWiederhake.GitHub@gmx.de',
     description='A robust, atomic file store',

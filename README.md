@@ -151,6 +151,7 @@ so the data is merely lost, but not corrupted.
 
 ## TODOs
 
+* Figure out how to make `bson` optional
 * Document it properly
 
 ## NOTDOs

@@ -12,4 +12,5 @@ matrix:
       sudo: true
 script:
   - python --version
-  - python -m unittest
+  - python setup.py build
+  - python setup.py test
