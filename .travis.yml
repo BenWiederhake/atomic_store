@@ -14,3 +14,8 @@ script:
   - python --version
   - python setup.py build
   - python setup.py test
+  - python -m pip install autodoc docutils numpydoc Sphinx
+  - sphinx-apidoc -f -o docs/ atomic_store/ atomic_store/tests/
+  - make -C docs html
+  - python -m pip install setuptools twine wheel
+  - python setup.py sdist bdist_wheel
