@@ -5,8 +5,7 @@
 from . import metastore
 
 
-# Run all the snippets in the README.
-class TestReadme(metastore.TestStore):
+class TestContextManager(metastore.TestStore):
     def setUp(self):
         self.setUpStore(default=[])
 
@@ -30,3 +29,29 @@ class TestReadme(metastore.TestStore):
             self.assertEqual(['1234', '5678'], store.value)
         self.assertFile('["1234", "5678"]')
         self.assertEqual(['1234', '5678'], store.value)
+
+
+class TestManualControl(metastore.TestStore):
+    def setUp(self):
+        self.setUpStore(default=dict())
+
+    def test_usage_manual_control(self):
+        self.assertFile(None)
+        my_store = self.open_store()
+        self.assertFile(None)
+        self.assertEqual(dict(), my_store.value)
+        my_store.value['state'] = 'running'
+        my_store.value['thought'] = 'I would not eat green eggs and ham.'
+        self.assertFile(None)
+        self.assertEqual({"state": "running", "thought": "I would not eat green eggs and ham."}, my_store.value)
+        my_store.commit()
+        self.assertFile('{"state": "running", "thought": "I would not eat green eggs and ham."}')
+        self.assertEqual({"state": "running", "thought": "I would not eat green eggs and ham."}, my_store.value)
+        # ... some calculations ...
+        my_store.value['state'] = 'done'
+        my_store.value['thought'] = 'I do so like Green eggs and ham!'
+        self.assertFile('{"state": "running", "thought": "I would not eat green eggs and ham."}')
+        self.assertEqual({"state": "done", "thought": "I do so like Green eggs and ham!"}, my_store.value)
+        my_store.commit()
+        self.assertFile('{"state": "done", "thought": "I do so like Green eggs and ham!"}')
+        self.assertEqual({"state": "done", "thought": "I do so like Green eggs and ham!"}, my_store.value)

@@ -60,7 +60,6 @@ This program remembers all start times:
 
 ```python3
 import atomic_store
-import time
 
 my_store = atomic_store.open('gathered.json', default=dict())
 
@@ -152,8 +151,8 @@ so the data is merely lost, but not corrupted.
 
 ## TODOs
 
-* Implement it
 * Write tests
+* Document it properly
 
 ## NOTDOs
 
