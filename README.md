@@ -23,7 +23,9 @@ and arbitrary formats are possible.
 
 Just `pip install atomic_store`.  Or, if you must, `pip install -r requirements.txt`
 
-Note that the only dependency is `atomicwrites`, which has no dependencies.
+Note that the only real dependency is `atomicwrites`, which has no dependencies.
+
+(The dependency on `bson` is only really needed when you choose the BSON backend.)
 
 ## Usage
 
