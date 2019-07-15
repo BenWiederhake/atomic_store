@@ -154,7 +154,6 @@ so the data is merely lost, but not corrupted.
 ## TODOs
 
 * Figure out how to make `bson` optional
-* Publish on PyPI
 
 ## NOTDOs
 
